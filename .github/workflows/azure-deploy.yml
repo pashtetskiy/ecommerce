@@ -70,11 +70,6 @@ jobs:
         with:
           name: ecommerce-api-bundle
           path: ./deploy_folder
-      
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Run DB Migrations
         run: |
