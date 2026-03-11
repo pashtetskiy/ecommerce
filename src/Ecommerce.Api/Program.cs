@@ -25,14 +25,14 @@ builder.Services.AddScoped<IValidator<Contracts.OrderItemDto>, OrderItemDtoValid
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDbContext<EcommerceDbContext>(opt =>
-        opt.UseNpgsql(builder.Configuration.GetConnectionString("ecommerce-db-pg"))
+        opt.UseNpgsql(builder.Configuration.GetConnectionString("ecommerce.db.pg"))
             .EnableSensitiveDataLogging()
             .LogTo(Console.WriteLine, LogLevel.Information));
 }
 else
 {
     builder.Services.AddDbContext<EcommerceDbContext>(opt =>
-        opt.UseNpgsql(builder.Configuration.GetConnectionString("ecommerce-db-pg")));
+        opt.UseNpgsql(builder.Configuration.GetConnectionString("ecommerce.db.pg")));
 }
 
 
@@ -45,15 +45,15 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
+// if (app.Environment.IsDevelopment())
+// {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
         options.RoutePrefix = string.Empty;
     });
-}
+// }
 
 app.UseHttpsRedirection();
 
