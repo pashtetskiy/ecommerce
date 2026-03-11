@@ -1,0 +1,89 @@
+name: Build and deploy ASP.Net Core app to an Azure Web App
+
+env:
+  AZURE_WEBAPP_NAME: sample-ecommerce
+  DOTNET_VERSION: '10.0.x'
+  API_PROJECT_PATH: 'src/Ecommerce.Api/Ecommerce.Api.csproj'
+  DATA_PROJECT_PATH: 'src/Ecommerce.Infrastructure/Ecommerce.Infrastructure.csproj'
+  RUNTIME: 'linux-x64'
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore Project-specific RIDs
+        run: |
+          dotnet restore ${{ env.DATA_PROJECT_PATH }} --runtime ${{ env.RUNTIME }}
+          dotnet restore ${{ env.API_PROJECT_PATH }} --runtime ${{ env.RUNTIME }}
+            
+      - name: Build Solution
+        run: dotnet build Ecommerce.sln --configuration Release --no-restore
+
+      - name: Install EF Tool
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Create Migration Bundle
+        run: |
+          dotnet ef migrations bundle \
+            --project ${{ env.DATA_PROJECT_PATH }} \
+            --startup-project ${{ env.API_PROJECT_PATH }} \
+            --self-contained \
+            --runtime ${{ env.RUNTIME }} \
+            -o ./publish_output/efbundle
+
+      - name: Publish API
+        run: |
+          dotnet publish ${{ env.API_PROJECT_PATH }} \
+            -c Release \
+            -o ./publish_output \
+            --no-restore \
+            --runtime ${{ env.RUNTIME }} \
+            --self-contained
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecommerce-api-bundle
+          path: ./publish_output
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ecommerce-api-bundle
+          path: ./deploy_folder
+      
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Run DB Migrations
+        run: |
+          chmod +x ./deploy_folder/efbundle
+          ./deploy_folder/efbundle --connection "${{ secrets.DB_CONNECTION_STRING }}"
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./deploy_folder
