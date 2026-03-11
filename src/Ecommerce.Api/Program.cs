@@ -25,14 +25,14 @@ builder.Services.AddScoped<IValidator<Contracts.OrderItemDto>, OrderItemDtoValid
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDbContext<EcommerceDbContext>(opt =>
-        opt.UseNpgsql(builder.Configuration.GetConnectionString("ecommerce.db.pg"))
+        opt.UseNpgsql(builder.Configuration.GetConnectionString("ecommercepostgres"))
             .EnableSensitiveDataLogging()
             .LogTo(Console.WriteLine, LogLevel.Information));
 }
 else
 {
     builder.Services.AddDbContext<EcommerceDbContext>(opt =>
-        opt.UseNpgsql(builder.Configuration.GetConnectionString("ecommerce.db.pg")));
+        opt.UseNpgsql(builder.Configuration.GetConnectionString("ecommercepostgres")));
 }
 
 
