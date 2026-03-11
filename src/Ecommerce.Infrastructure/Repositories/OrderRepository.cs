@@ -15,7 +15,7 @@ public class OrderRepository(EcommerceDbContext db) : IOrderRepository
             .ThenInclude(i => i.Product)
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id);
-
+    
     public async Task AddAsync(Order order)
     {
         db.Orders.Add(order);

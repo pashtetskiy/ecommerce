@@ -59,6 +59,11 @@ public class ProductService(
 
     public async Task<Result> DeleteAsync(Guid id)
     {
+        if (await productRepository.HasOrdersAsync(id))
+        {
+            return DomainErrors.Product.InUseByOrders;
+        }
+        
         var deleted = await productRepository.DeleteAsync(id);
         return deleted ? Result.Success() : DomainErrors.Product.NotFound;
     }

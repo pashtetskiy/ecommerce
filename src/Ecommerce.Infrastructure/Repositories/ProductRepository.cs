@@ -17,6 +17,11 @@ public class ProductRepository(EcommerceDbContext db) : IProductRepository
             .Where(p => ids.Contains(p.Id))
             .ToDictionaryAsync(p => p.Id);
 
+    public async Task<bool> HasOrdersAsync(Guid id)
+    {
+        return await db.OrderItems.Where(o => o.ProductId == id).AnyAsync();
+    }
+
     public async Task AddAsync(Product product)
     {
         db.Products.Add(product);

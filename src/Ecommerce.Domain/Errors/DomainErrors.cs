@@ -28,5 +28,9 @@ public static class DomainErrors
         public static readonly Error NotFound = new(
             "Product.ProductNotFound",
             "Product not found.");
+
+        public static readonly Error InUseByOrders = new(
+            "Product.InUseByOrders",
+            "Product used in orders.");
     }
 }
